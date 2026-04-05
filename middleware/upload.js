@@ -1,17 +1,12 @@
-const multer = require('multer');
-const path   = require('path');
-const fs     = require('fs');
+const multer                  = require('multer');
+const { CloudinaryStorage }   = require('multer-storage-cloudinary');
+const { v2: cloudinary }      = require('cloudinary');
 
-function makeStorage(dest) {
-  fs.mkdirSync(dest, { recursive: true });
-  return multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, dest),
-    filename:    (_req, file, cb) => {
-      const safe = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '');
-      cb(null, `${Date.now()}-${safe}`);
-    },
-  });
-}
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const imageFilter = (_req, file, cb) => {
   if (/^image\/(jpeg|jpg|png|webp|gif)$/.test(file.mimetype)) cb(null, true);
@@ -19,20 +14,30 @@ const imageFilter = (_req, file, cb) => {
 };
 
 exports.productUpload = multer({
-  storage: makeStorage(path.join(__dirname, '../public/uploads/products')),
+  storage: new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder:         'thriftedgaala/products',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+      transformation: [{ width: 800, crop: 'limit' }],
+    },
+  }),
   fileFilter: imageFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
 exports.gpayUpload = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, cb) => {
-      const dir = path.join(__dirname, '../public/uploads/gpay');
-      fs.mkdirSync(dir, { recursive: true });
-      cb(null, dir);
+  storage: new CloudinaryStorage({
+    cloudinary,
+    params: {
+      folder:          'thriftedgaala/gpay',
+      public_id:       'qr',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+      overwrite:       true,
     },
-    filename: (_req, _file, cb) => cb(null, 'qr.png'),
   }),
   fileFilter: imageFilter,
   limits: { fileSize: 2 * 1024 * 1024 },
 });
+
+exports.cloudinary = cloudinary;

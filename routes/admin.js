@@ -1,11 +1,9 @@
 const express   = require('express');
 const router    = express.Router();
-const fs        = require('fs');
-const path      = require('path');
 const Product   = require('../models/Product');
 const Order     = require('../models/Order');
 const adminAuth = require('../middleware/adminAuth');
-const { productUpload, gpayUpload } = require('../middleware/upload');
+const { productUpload, gpayUpload, cloudinary } = require('../middleware/upload');
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 
@@ -36,17 +34,20 @@ router.post('/logout', (req, res) => {
 // ── SETTINGS ──────────────────────────────────────────────────────────────────
 
 // GET /api/admin/settings  (public — store needs this to decide payment flow)
-router.get('/settings', (req, res) => {
+router.get('/settings', async (_req, res) => {
   const razorpayEnabled = !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
-  const gpayQrPath = path.join(__dirname, '../public/uploads/gpay/qr.png');
-  const gpayQrUrl  = fs.existsSync(gpayQrPath) ? '/uploads/gpay/qr.png' : null;
+  let gpayQrUrl = null;
+  try {
+    const result = await cloudinary.api.resource('thriftedgaala/gpay/qr');
+    gpayQrUrl = result.secure_url;
+  } catch (_) { /* QR not uploaded yet */ }
   res.json({ razorpayEnabled, razorpayKeyId: razorpayEnabled ? process.env.RAZORPAY_KEY_ID : null, gpayQrUrl });
 });
 
 // POST /api/admin/gpay-qr  — upload / replace GPay QR image
 router.post('/gpay-qr', adminAuth, gpayUpload.single('qr'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
-  res.json({ url: '/uploads/gpay/qr.png' });
+  res.json({ url: req.file.path });
 });
 
 // ── STATS ─────────────────────────────────────────────────────────────────────
@@ -88,7 +89,7 @@ router.post('/products', adminAuth, productUpload.single('image'), async (req, r
     const sizes = req.body.sizes
       ? req.body.sizes.split(',').map(s => s.trim()).filter(Boolean)
       : ['S','M','L'];
-    const image = req.file ? `/uploads/products/${req.file.filename}` : '';
+    const image = req.file ? req.file.path : '';
     const product = await Product.create({
       name, desc, price: +price, oldPrice: +(oldPrice||0),
       category, badge: badge||'', sizes, image, emoji: emoji||'👕',
@@ -121,12 +122,16 @@ router.put('/products/:id', adminAuth, productUpload.single('image'), async (req
     if (inStock !== undefined) product.inStock = inStock === 'true' || inStock === true;
 
     if (req.file) {
-      // Delete old image if it exists
+      // Delete old image from Cloudinary if it exists
       if (product.image) {
-        const oldPath = path.join(__dirname, '../public', product.image);
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        try {
+          // Extract public_id from the old Cloudinary URL
+          const parts = product.image.split('/');
+          const publicId = parts.slice(-2).join('/').replace(/\.[^/.]+$/, '');
+          await cloudinary.uploader.destroy(publicId);
+        } catch (_) { /* ignore if old image missing */ }
       }
-      product.image = `/uploads/products/${req.file.filename}`;
+      product.image = req.file.path;
     }
 
     await product.save();
@@ -142,8 +147,11 @@ router.delete('/products/:id', adminAuth, async (req, res) => {
     const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found.' });
     if (product.image) {
-      const imgPath = path.join(__dirname, '../public', product.image);
-      if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+      try {
+        const parts = product.image.split('/');
+        const publicId = parts.slice(-2).join('/').replace(/\.[^/.]+$/, '');
+        await cloudinary.uploader.destroy(publicId);
+      } catch (_) { /* ignore if image missing */ }
     }
     res.json({ ok: true });
   } catch (err) {
