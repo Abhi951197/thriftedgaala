@@ -22,9 +22,16 @@ router.post('/', async (req, res) => {
     }
     const orderId = genOrderId();
     const order = await Order.create({
-      orderId, customer, items, subtotal, shipping, total,
+      orderId,
+      user: req.session.userId || null,
+      customer, items, subtotal, shipping, total,
       payment: { method: payment.method, verified: payment.method === 'COD' },
     });
+    // Clear user's persistent cart on successful order
+    if (req.session.userId) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(req.session.userId, { cart: [] });
+    }
     res.status(201).json({ orderId: order.orderId, total: order.total });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -64,7 +71,9 @@ router.post('/razorpay/verify', async (req, res) => {
     const { customer, items, subtotal, shipping, total } = orderData;
     const orderId = genOrderId();
     const order = await Order.create({
-      orderId, customer, items, subtotal, shipping, total,
+      orderId,
+      user: req.session.userId || null,
+      customer, items, subtotal, shipping, total,
       payment: {
         method: 'Razorpay',
         razorpayOrderId,
@@ -72,6 +81,10 @@ router.post('/razorpay/verify', async (req, res) => {
         verified: true,
       },
     });
+    if (req.session.userId) {
+      const User = require('../models/User');
+      await User.findByIdAndUpdate(req.session.userId, { cart: [] });
+    }
     res.status(201).json({ orderId: order.orderId, total: order.total });
   } catch (err) {
     res.status(500).json({ error: err.message });
