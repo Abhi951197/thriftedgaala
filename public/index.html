@@ -2358,12 +2358,84 @@ body::before {
 [data-reveal-delay="3"] { transition-delay: .3s; }
 [data-reveal-delay="4"] { transition-delay: .4s; }
 
+/* ═══════════════════════ SEARCH MODAL ═══════════════════════ */
+#search-ov {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,10,.7);
+  backdrop-filter: blur(8px);
+  z-index: 750;
+  opacity: 0;
+  visibility: hidden;
+  transition: all .3s var(--ease);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 80px;
+}
+#search-ov.on { opacity: 1; visibility: visible; }
+.search-box {
+  width: 100%;
+  max-width: 500px;
+  background: var(--cream);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(10,10,10,.3);
+  transform: translateY(-20px);
+  transition: transform .3s var(--ease-out);
+}
+#search-ov.on .search-box { transform: translateY(0); }
+.search-input {
+  width: 100%;
+  padding: 20px 28px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--black);
+  font-family: var(--sans);
+  outline: none;
+  border-bottom: 1px solid rgba(10,10,10,.08);
+}
+.search-input::placeholder { color: rgba(10,10,10,.4); }
+.search-results {
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 12px;
+}
+.search-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.search-item:hover { background: rgba(10,10,10,.06); }
+.search-item-img {
+  width: 50px;
+  height: 65px;
+  border-radius: 4px;
+  background: var(--cream-dk);
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.search-item-img img { width: 100%; height: 100%; object-fit: cover; }
+.search-item-info { flex: 1; min-width: 0; }
+.search-item-name { font-family: var(--serif); font-size: 16px; font-weight: 500; margin-bottom: 2px; }
+.search-item-price { font-size: 13px; color: rgba(10,10,10,.6); }
+.search-empty { text-align: center; padding: 48px 20px; color: rgba(10,10,10,.4); font-size: 14px; }
+
 /* ═══════════════════════ RESPONSIVE ═══════════════════════ */
 @media (max-width: 1200px) {
   .pgrid { grid-template-columns: repeat(3, 1fr); }
   .cat-grid { grid-template-columns: repeat(2, 1fr); }
   .footer-cols { grid-template-columns: repeat(2, 1fr); }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 50px; }
+  .pcard-media { aspect-ratio: 2.8/4; }
 }
 @media (max-width: 900px) {
   .nav-inner { padding: 0 24px; grid-template-columns: auto 1fr auto; }
@@ -2383,6 +2455,7 @@ body::before {
   .deal-vis { max-width: 380px; }
   .deal-pct-num { font-size: 180px; }
   .pgrid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .pcard-media { aspect-ratio: 2.8/4; }
   .pcard-name { font-size: 18px; }
   .shop-head { flex-direction: column; align-items: flex-start; }
   #det-pan { grid-template-columns: 1fr; height: 94vh; overflow-y: auto; }
@@ -2399,12 +2472,32 @@ body::before {
   .marquee-item { font-size: 60px; gap: 24px; }
   .marquee-item::after { font-size: 24px; }
   .sec-head { flex-direction: column; align-items: flex-start; }
+  .hero-title { font-size: clamp(48px, 10vw, 140px); word-break: break-word; }
+}
+@media (max-width: 768px) {
+  .pgrid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .pcard-media { aspect-ratio: 2.5/4; }
+  .pcard { border-radius: 3px; }
+  .pcard-name { font-size: 16px; }
+  .sec-title { font-size: clamp(36px, 6vw, 60px); word-break: break-word; }
+  .hero-title { font-size: clamp(40px, 9vw, 100px); }
 }
 @media (max-width: 560px) {
-  .pgrid { grid-template-columns: 1fr; }
+  .pgrid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .pcard-media { aspect-ratio: 2.3/4; }
+  .pcard-body { padding: 14px 10px 12px; }
+  .pcard-name { font-size: 14px; margin-bottom: 2px; }
+  .pcard-desc { font-size: 11px; margin-bottom: 10px; }
+  .pcard-cat { font-size: 9px; margin-bottom: 3px; }
+  .pcard-sizes { gap: 4px; margin-bottom: 12px; }
+  .sch { padding: 4px 8px; font-size: 9px; }
+  .pcard-foot { gap: 8px; }
+  .padd { width: 36px; height: 36px; font-size: 16px; }
+  .pprice { font-size: 15px; }
   .cat-grid { grid-template-columns: 1fr; }
-  .hero-title { font-size: 64px; }
-  .cat-name { font-size: 36px; }
+  .hero-title { font-size: clamp(32px, 8vw, 80px); letter-spacing: -0.02em; }
+  .sec-title { font-size: clamp(28px, 5.5vw, 50px); }
+  .cat-name { font-size: 28px; }
 }
 </style>
 </head>
@@ -2417,7 +2510,7 @@ body::before {
 <!-- ─── LOADER ─── -->
 <div class="loader" id="loader">
   <div class="loader-text">
-    <span>t</span><span>h</span><span>r</span><span>i</span><span>f</span><span>t</span><span>e</span><span>d</span><span>G</span><span>a</span><span>l</span><span>a</span>
+    <span>t</span><span>h</span><span>r</span><span>i</span><span>f</span><span>t</span><span>e</span><span>d</span><span>G</span><span>a</span><span>a</span><span>l</span><span>a</span>
   </div>
   <div class="loader-bar"></div>
 </div>
@@ -2450,7 +2543,7 @@ body::before {
       <li><a href="#shop" onclick="filterAndGo('accessories');return false;">Accessories</a></li>
     </ul>
     <div class="nav-right">
-      <button class="nav-search" title="Search">
+      <button class="nav-search" title="Search" onclick="toggleSearch()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
       </button>
       <div style="position:relative">
@@ -2490,6 +2583,14 @@ body::before {
 
 <!-- ─── TOASTS ─── -->
 <div id="toasts"></div>
+
+<!-- ─── SEARCH MODAL ─── -->
+<div id="search-ov" onclick="closeSearch()">
+  <div id="search-box" class="search-box" onclick="event.stopPropagation()">
+    <input type="text" id="search-input" class="search-input" placeholder="Search products..." onkeyup="performSearch()" autofocus>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
 
 <!-- ─── AUTH MODAL ─── -->
 <div id="auth-ov">
@@ -2639,6 +2740,48 @@ body::before {
         <div class="cat-arr">→</div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ─── CATEGORY GRIDS: TOPS ─── -->
+<section id="cat-tops-sec" style="padding:100px 40px;background:var(--cream);display:none">
+  <div class="sec-head" data-reveal>
+    <div>
+      <span class="sec-num">— 1a / Tops</span>
+      <h2 class="sec-title">Fresh <span class="italic">tops</span></h2>
+    </div>
+    <a href="#shop" class="sec-link" data-reveal onclick="filterAndGo('tops');return false;">View all →</a>
+  </div>
+  <div class="cat-grid" style="grid-template-columns:repeat(2,1fr);max-width:900px" id="tops-grid">
+    <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:rgba(10,10,10,.4)">Loading…</div>
+  </div>
+</section>
+
+<!-- ─── CATEGORY GRIDS: BOTTOMS ─── -->
+<section id="cat-bottoms-sec" style="padding:100px 40px;background:var(--cream-dk);display:none">
+  <div class="sec-head" data-reveal>
+    <div>
+      <span class="sec-num">— 1b / Bottoms</span>
+      <h2 class="sec-title">Standout <span class="italic">bottoms</span></h2>
+    </div>
+    <a href="#shop" class="sec-link" data-reveal onclick="filterAndGo('bottoms');return false;">View all →</a>
+  </div>
+  <div class="cat-grid" style="grid-template-columns:repeat(2,1fr);max-width:900px" id="bottoms-grid">
+    <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:rgba(10,10,10,.4)">Loading…</div>
+  </div>
+</section>
+
+<!-- ─── CATEGORY GRIDS: ACCESSORIES ─── -->
+<section id="cat-acc-sec" style="padding:100px 40px;background:var(--cream);display:none">
+  <div class="sec-head" data-reveal>
+    <div>
+      <span class="sec-num">— 1c / Accessories</span>
+      <h2 class="sec-title">Finishing <span class="italic">touches</span></h2>
+    </div>
+    <a href="#shop" class="sec-link" data-reveal onclick="filterAndGo('accessories');return false;">View all →</a>
+  </div>
+  <div class="cat-grid" style="grid-template-columns:repeat(2,1fr);max-width:900px" id="acc-grid">
+    <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:rgba(10,10,10,.4)">Loading…</div>
   </div>
 </section>
 
@@ -2818,15 +2961,22 @@ body::before {
     <div class="co-steps" id="co-steps"></div>
     <div id="co-s1">
       <h2 class="co-h">Delivery <span class="italic">details</span></h2>
-      <div class="f-row">
-        <div class="fg"><label class="fl">First Name</label><input class="fi" id="co-fn" placeholder="Priya" type="text"></div>
-        <div class="fg"><label class="fl">Last Name</label><input class="fi" id="co-ln" placeholder="Sharma" type="text"></div>
+      <div id="saved-addr-display" style="display:none;background:var(--cream-dk);padding:18px;border-radius:10px;margin-bottom:20px">
+        <div style="font-size:12px;color:rgba(10,10,10,.6);margin-bottom:8px;letter-spacing:0.05em;text-transform:uppercase">Saved Address</div>
+        <div id="saved-addr-text" style="font-size:14px;margin-bottom:12px;line-height:1.5"></div>
+        <button class="co-edit-addr" onclick="editSavedAddress()" style="font-size:12px;font-weight:600;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--accent);padding:8px 16px;border-radius:6px;transition:all .3s;cursor:pointer" onmouseover="this.style.background='var(--accent)';this.style.color='var(--cream)'" onmouseout="this.style.background='transparent';this.style.color='var(--accent)'">Edit Address</button>
       </div>
-      <div class="fg"><label class="fl">Phone Number</label><input class="fi" id="co-ph" placeholder="10-digit number" type="tel" maxlength="10"></div>
-      <div class="fg"><label class="fl">Delivery Address</label><input class="fi" id="co-ad" placeholder="House no., street, area, landmark" type="text"></div>
-      <div class="f-row">
-        <div class="fg"><label class="fl">City</label><input class="fi" id="co-ci" placeholder="Hyderabad" type="text"></div>
-        <div class="fg"><label class="fl">PIN Code</label><input class="fi" id="co-pi" placeholder="500001" type="text" maxlength="6"></div>
+      <div id="addr-form">
+        <div class="f-row">
+          <div class="fg"><label class="fl">First Name</label><input class="fi" id="co-fn" placeholder="Priya" type="text"></div>
+          <div class="fg"><label class="fl">Last Name</label><input class="fi" id="co-ln" placeholder="Sharma" type="text"></div>
+        </div>
+        <div class="fg"><label class="fl">Phone Number</label><input class="fi" id="co-ph" placeholder="10-digit number" type="tel" maxlength="10"></div>
+        <div class="fg"><label class="fl">Delivery Address</label><input class="fi" id="co-ad" placeholder="House no., street, area, landmark" type="text"></div>
+        <div class="f-row">
+          <div class="fg"><label class="fl">City</label><input class="fi" id="co-ci" placeholder="Hyderabad" type="text"></div>
+          <div class="fg"><label class="fl">PIN Code</label><input class="fi" id="co-pi" placeholder="500001" type="text" maxlength="6"></div>
+        </div>
       </div>
       <button class="co-next" onclick="coNext()">Continue to Payment →</button>
     </div>
@@ -3385,6 +3535,64 @@ async function updateCatCounts() {
       el.textContent = d.length + ' piece' + (d.length !== 1 ? 's' : '');
     } catch(e) {}
   }
+  // Render category grids
+  renderCategoryGrids();
+}
+
+function renderCategoryGrids() {
+  const renderCatGrid = (catName, gridId, sectionId) => {
+    const filtered = allProducts.filter(p => p.category === catName);
+    const grid = document.getElementById(gridId);
+    const section = document.getElementById(sectionId);
+    if (!grid || !section) return;
+    
+    if (filtered.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+    
+    section.style.display = 'block';
+    grid.innerHTML = '';
+    
+    filtered.slice(0,4).forEach(p => {
+      const bdg = p.badge ? `<span class="pcard-bdg b-${p.badge}">${p.badge}</span>` : '';
+      const media = p.image
+        ? `<img src="${p.image}" alt="${p.name}" loading="lazy">`
+        : `<span class="pcard-emoji">${p.emoji||'👕'}</span>`;
+      const bgStyle = p.image ? '' : `style="background:${CAT_BG[p.category]||CAT_BG.tops}"`;
+      const sizes = p.sizes.map((s,i) =>
+        `<span class="sch${i===0?' on':''}" data-pid="${p._id}" data-s="${s}" onclick="selSize(event,'${p._id}','${s}')">${s}</span>`
+      ).join('');
+      const card = document.createElement('div');
+      card.className = 'pcard';
+      card.setAttribute('data-reveal','');
+      card.innerHTML = `
+        <div class="pcard-media" ${bgStyle} onclick="openDetail('${p._id}')">
+          ${media}${bdg}
+          <button class="pcard-wish" onclick="event.stopPropagation();toast('Saved to wishlist 🤍')">🤍</button>
+          <div class="pcard-qadd" onclick="event.stopPropagation();quickAdd('${p._id}')">+ Add to Bag</div>
+        </div>
+        <div class="pcard-body">
+          <div class="pcard-cat">${p.category}</div>
+          <div class="pcard-name">${p.name}</div>
+          <div class="pcard-desc">${p.desc}</div>
+          <div class="pcard-sizes" id="sc-${p._id}">${sizes}</div>
+          <div class="pcard-foot">
+            <div class="pcard-prices">
+              <span class="pprice">₹${p.price.toLocaleString('en-IN')}</span>
+              ${p.oldPrice ? `<span class="pold">₹${p.oldPrice.toLocaleString('en-IN')}</span>` : ''}
+            </div>
+            <button class="padd" onclick="event.stopPropagation();quickAdd('${p._id}')" title="Add to bag">+</button>
+          </div>
+        </div>`;
+      grid.appendChild(card);
+      if (ro) ro.observe(card);
+    });
+  };
+  
+  renderCatGrid('tops', 'tops-grid', 'cat-tops-sec');
+  renderCatGrid('bottoms', 'bottoms-grid', 'cat-bottoms-sec');
+  renderCatGrid('accessories', 'acc-grid', 'cat-acc-sec');
 }
 
 function selSize(e, pid, size) {
@@ -3542,6 +3750,76 @@ function closeCart() {
   document.body.style.overflow = '';
 }
 
+// ── SEARCH ────────────────────────────────────────────────────────────────
+function toggleSearch() {
+  const searchOv = document.getElementById('search-ov');
+  if (searchOv.classList.contains('on')) {
+    closeSearch();
+  } else {
+    searchOv.classList.add('on');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('search-input').focus();
+  }
+}
+
+function closeSearch() {
+  document.getElementById('search-ov').classList.remove('on');
+  document.body.style.overflow = '';
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-results').innerHTML = '';
+}
+
+function performSearch() {
+  const query = document.getElementById('search-input').value.toLowerCase().trim();
+  const resultsDiv = document.getElementById('search-results');
+  
+  if (!query) {
+    resultsDiv.innerHTML = '';
+    return;
+  }
+  
+  // Filter products based on search query
+  const filtered = allProducts.filter(p => 
+    p.name.toLowerCase().includes(query) ||
+    p.desc.toLowerCase().includes(query) ||
+    p.category.toLowerCase().includes(query)
+  );
+  
+  if (filtered.length === 0) {
+    resultsDiv.innerHTML = '<div class="search-empty">No products found</div>';
+    return;
+  }
+  
+  resultsDiv.innerHTML = filtered.slice(0, 8).map(p => `
+    <div class="search-item" onclick="openDetail('${p._id}');closeSearch();return false;">
+      <div class="search-item-img">
+        ${p.image ? `<img src="${p.image}" alt="${p.name}">` : p.emoji || '📦'}
+      </div>
+      <div class="search-item-info">
+        <div class="search-item-name">${p.name}</div>
+        <div class="search-item-price">₹${p.price}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Also close search when clicking outside
+document.addEventListener('click', e => {
+  const searchOv = document.getElementById('search-ov');
+  if (!e.target.closest('#search-box') && !e.target.closest('.nav-search')) {
+    if (searchOv.classList.contains('on')) {
+      closeSearch();
+    }
+  }
+});
+
+// Close search on Escape key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('search-ov').classList.contains('on')) {
+    closeSearch();
+  }
+});
+
 // ── CHECKOUT ──────────────────────────────────────────────────────────────
 let coStep = 1;
 function renderSteps() {
@@ -3552,11 +3830,46 @@ function renderSteps() {
     <div class="step-dot ${coStep>=2?'act':''}">2</div>
     <div class="step-lbl ${coStep===2?'act':''}">Review & Pay</div>`;
 }
+function loadSavedAddress() {
+  const saved = localStorage.getItem('tg_saved_address');
+  if (saved) {
+    try {
+      const addr = JSON.parse(saved);
+      document.getElementById('saved-addr-text').innerHTML = `
+        <strong>${addr.firstName} ${addr.lastName}</strong><br>
+        ${addr.phone}<br>
+        ${addr.address}, ${addr.city} — ${addr.pin}
+      `;
+      document.getElementById('saved-addr-display').style.display = 'block';
+      document.getElementById('addr-form').style.display = 'none';
+      // Auto-fill form (hidden) so it can be used if user edits
+      document.getElementById('co-fn').value = addr.firstName;
+      document.getElementById('co-ln').value = addr.lastName;
+      document.getElementById('co-ph').value = addr.phone;
+      document.getElementById('co-ad').value = addr.address;
+      document.getElementById('co-ci').value = addr.city;
+      document.getElementById('co-pi').value = addr.pin;
+    } catch(e) {}
+  }
+}
+
+function editSavedAddress() {
+  document.getElementById('saved-addr-display').style.display = 'none';
+  document.getElementById('addr-form').style.display = 'block';
+  document.getElementById('co-fn').focus();
+}
+
+function saveAddressForNextTime(fn, ln, ph, ad, ci, pi) {
+  const addr = { firstName: fn, lastName: ln, phone: ph, address: ad, city: ci, pin: pi };
+  localStorage.setItem('tg_saved_address', JSON.stringify(addr));
+}
+
 function openCheckout() {
   closeCart();
   coStep=1;
   document.getElementById('co-s1').style.display='block';
   document.getElementById('co-s2').style.display='none';
+  loadSavedAddress();
   renderSteps();
   document.getElementById('co-ov').classList.add('on');
   document.body.style.overflow='hidden';
@@ -3575,6 +3888,8 @@ function coNext() {
   if(!fn||!ln||!ph||!ad||!ci||!pi){toast('Please fill in all delivery details');return}
   if(!/^\d{10}$/.test(ph)){toast('Enter a valid 10-digit phone number');return}
   if(!/^\d{6}$/.test(pi)){toast('Enter a valid 6-digit PIN code');return}
+  // Save address for next time
+  saveAddressForNextTime(fn, ln, ph, ad, ci, pi);
   coStep=2;
   document.getElementById('co-s1').style.display='none';
   document.getElementById('co-s2').style.display='block';
